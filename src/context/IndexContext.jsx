@@ -12,8 +12,6 @@ export default function ContextProvider({ children }) {
   const [openDescription, setOpenDescription] = useState(false);
   const [childCardDetails, setChildCardDetails] = useState({});
 
-//   const [isChecked, setIsChecked] = useState(false);
-
   // DISPLAY BOARD DATA ( TASK CARD WITH CHILD CARD )
   const handleOnDashbord = async (id) => {
     console.log("Enter in handle===========OnDashbord context");
@@ -58,21 +56,24 @@ export default function ContextProvider({ children }) {
   };
 
   // CHECKED OR UNCHECKED CHILD CARD
-//   const handleComplete = async (e, id) => {
-//     e.preventDefault();
-//     const newStatus = !isChecked;
-//     let data = JSON.stringify({
-//       id,
-//       is_checked: newStatus,
-//     });
-//     let result = await apiHelper.postRequest("update-child-card-status", data);
-//     if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
-//       setIsChecked(newStatus);
-//       console.log("MESSAGE IF : ", result?.message);
-//     } else {
-//       console.log("MESSAGE ELSE : ", result?.message);
-//     }
-//   };
+  const handleComplete = async (e, id) => {
+    e.preventDefault();
+    const newStatus = !childCardDetails?.is_checked;
+    let data = JSON.stringify({
+      id,
+      is_checked: newStatus,
+    });
+    let result = await apiHelper.postRequest("update-child-card-status", data);
+    if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
+      setChildCardDetails((prev) => ({
+        ...prev,
+        is_checked: newStatus,
+      }));
+      console.log("MESSAGE IF : ", result?.message);
+    } else {
+      console.log("MESSAGE ELSE : ", result?.message);
+    }
+  };
 
   return (
     <IndexContext.Provider
@@ -88,9 +89,9 @@ export default function ContextProvider({ children }) {
         boardData,
         setBoardData,
         getBoards,
-        // isChecked,
-        // setIsChecked,
-        // handleComplete,
+        // isCheckedD,
+        // setIsCheckedD,
+        handleComplete,
       }}
     >
       {children}

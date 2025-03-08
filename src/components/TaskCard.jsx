@@ -28,61 +28,88 @@ export default function TaskCard({ id, values }) {
   };
   const handleCloseAddCard = () => {
     setAddCard(false);
-  }
+  };
 
-  const [newValue, setNewValue] = useState("")
-  const [childCard, setChildCard] = useState({});
+  const [newValue, setNewValue] = useState("");
+  const [listCard, setListCard] = useState({});
 
   // GET CHILD CARDS ( WHEN NEW CARD IS CREATED )
   async function displayDashbordCard(id) {
-    let result = await apiHelper.getRequest(`display-dashbord-card?id=${id}`)
+    let result = await apiHelper.getRequest(`display-dashbord-card?id=${id}`);
     if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
-      setChildCard(result?.body)
+      setListCard(result?.body);
     } else {
-      setChildCard({})
+      setListCard({});
     }
   }
   useEffect(() => {
-    setChildCard(values)
-  }, [values])
+    setListCard(values);
+  }, [values]);
 
   const handleValidation = () => {
-    let isValid = true
+    let isValid = true;
     if (newValue.trim() === "") {
       isValid = false;
     }
-    return isValid
-  }
+    return isValid;
+  };
   // CREATE CHILD CARD ( ADD CARD )
   async function handleCreateChildCard(e) {
     e.preventDefault();
     if (!handleValidation()) {
-      handleCloseAddCard()
-      return
+      handleCloseAddCard();
+      return;
     }
     let data = JSON.stringify({
       title: newValue,
       description: "",
       is_checked: false,
       dashbord_c_id: id,
-    })
-    let result = await apiHelper.postRequest("create-child-card", data)
+    });
+    let result = await apiHelper.postRequest("create-child-card", data);
     if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
-      handleCloseAddCard()
-      setNewValue("")
-      displayDashbordCard(id) // UPDATE CONTENT
-      console.log("MESSAGE IF : ", result.message)
-    }
-    else {
-      console.log("MESSAGE ELSE : ", result.message)
+      handleCloseAddCard();
+      setNewValue("");
+      displayDashbordCard(id); // UPDATE CONTENT
+      console.log("MESSAGE IF : ", result.message);
+    } else {
+      console.log("MESSAGE ELSE : ", result.message);
     }
   }
+
+  const handleValidation2 = () => {
+    let isValid = true;
+    if (listCard.title.trim() === "") {
+      isValid = false;
+    }
+    return isValid;
+  };
+  // UPDATE LIST CARD
+  const handleUpdateDashbordCard = async (e, id) => {
+    if (!handleValidation2()) {
+      return;
+    }
+    let data = JSON.stringify({
+      d_c_id: id,
+      newListTitle: listCard.title,
+    });
+    let result = await apiHelper.postRequest("update-dashbord-card", data);
+    if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
+      // setListCard((prev) => ({
+      //   ...prev,
+      //   title: listCard.title,
+      // }));
+      console.log("MESSAGE IF : ", result.message);
+    } else {
+      console.log("MESSAGE ELSE : ", result.message);
+    }
+  };
 
   // HANDLE MIN OR MAX
   async function handleUpdateMinMax(e) {
     e.preventDefault();
-    const newStatus = !isClose
-    setIsClose(newStatus)
+    const newStatus = !isClose;
+    setIsClose(newStatus);
     // let data = JSON.stringify({
     //   id,
     //   newStatus
@@ -98,7 +125,7 @@ export default function TaskCard({ id, values }) {
   }
 
   const scrollRef = useRef(null);
-  const { setNodeRef } = useDroppable({ id })
+  const { setNodeRef } = useDroppable({ id });
   return (
     <>
       {!isClose ? (
@@ -108,9 +135,27 @@ export default function TaskCard({ id, values }) {
           className="bg-white text-gray-600 font-medium p-3 cursor-pointer min-w-72 rounded-xl shadow-md flex flex-col space-y-2"
         >
           <div className="flex items-start justify-between gap-2 pb-2 mb-1">
-            <h2 className="text-sm font-semibold flex-1 w-3/4 break-words whitespace-normal">
-              {values.title}
-            </h2>
+            {/* <h2 className="text-sm font-semibold flex-1 w-3/4 break-words whitespace-normal">
+              {listCard.title}
+            </h2> */}
+            <textarea
+              value={listCard?.title}
+              className="w-full h-8 px-2 py-1 text-base font-semibold resize-none outline-none overflow-hidden rounded focus:border-2 focus:border-blue-600"
+              onChange={(e) => {
+                setListCard((prev) => ({
+                  ...prev,
+                  title: e.target.value,
+                }));
+                e.target.style.height = "32";
+                e.target.style.height = e.target.scrollHeight + "px";
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleUpdateDashbordCard(e, listCard.id);
+                }
+              }}
+            />
             <div className="flex items-center gap-4">
               <button
                 className="cursor-pointer"
@@ -132,17 +177,16 @@ export default function TaskCard({ id, values }) {
               // ref={setNodeRef}
               className="space-y-3 p-1"
             >
-              {childCard && (
+              {listCard && (
                 <>
-                  {childCard?.child_cards?.map((item) => (
+                  {listCard?.child_cards?.map((item) => (
                     <ChildCard
                       key={item.id}
                       id={item.id}
                       cardValues={item}
                       displayDashbordCard={displayDashbordCard}
                     />
-                  ))
-                  }
+                  ))}
                 </>
               )}
 
@@ -152,7 +196,7 @@ export default function TaskCard({ id, values }) {
                     value={newValue}
                     placeholder="Enter a title or pase a link"
                     className="w-full h-fit text-sm text-gray-700 font-normal border-2 border-blue-500 rounded resize-none outline-none px-2 py-2"
-                    onChange={((e) => setNewValue(e.target.value))}
+                    onChange={(e) => setNewValue(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -161,7 +205,8 @@ export default function TaskCard({ id, values }) {
                     }}
                   />
                   <div className="flex gap-1">
-                    <button className="text-sm text-white bg-blue-600 hover:bg-blue-700 px-3 rounded cursor-pointer"
+                    <button
+                      className="text-sm text-white bg-blue-600 hover:bg-blue-700 px-3 rounded cursor-pointer"
                       onClick={handleCreateChildCard}
                     >
                       Add card
@@ -180,8 +225,9 @@ export default function TaskCard({ id, values }) {
           </div>
 
           <div
-            className={`${addCard ? "hidden" : "flex"
-              } items-center justify-between gap-2 pt-1`}
+            className={`${
+              addCard ? "hidden" : "flex"
+            } items-center justify-between gap-2 pt-1`}
           >
             <div className="hover:bg-[#d0d4db] py-2 rounded w-full">
               <button
@@ -199,14 +245,14 @@ export default function TaskCard({ id, values }) {
         </div>
       ) : (
         <div
-          key={values.title}
+          key={listCard.id}
           className="cursor-pointer flex flex-col items-center bg-white text-gray-600 rounded-xl px-3 py-2 w-10 h-fit space-y-2"
         >
           <button className="" onClick={(e) => handleUpdateMinMax(e)}>
             <Maximize2 size={16} strokeWidth={2.5} className="rotate-45" />
           </button>
           <div className="flex items-center gap-2 rotate-0 writing-vertical-lr">
-            <h2 className="text-sm font-semibold">{values.title}</h2>
+            <h2 className="text-sm font-semibold">{listCard.title}</h2>
             {/* <span className="text-xs mt-1">5</span> */}
           </div>
         </div>

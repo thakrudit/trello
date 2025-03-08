@@ -3,6 +3,8 @@ import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import { CircleStop, Clock, Menu, Pause, Play, Plus, X } from "lucide-react";
 import { useIndexContext } from "../context/IndexContext";
+import DEVELOPMENT_CONFIG from "../helpers/config";
+import apiHelper from "../helpers/api-helper";
 
 const style = {
   position: "absolute",
@@ -15,32 +17,50 @@ const style = {
 };
 
 export default function Description() {
-  const { openDescription, setOpenDescription, childCardDetails } =
-    useIndexContext();
+  const {
+    openDescription,
+    setOpenDescription,
+    childCardDetails,
+    handleComplete,
+  } = useIndexContext();
+  // console.log("childCardDetails =============", childCardDetails);
 
   // CLOSE DESCRIPTION MODAL
   const handleClose = () => {
     setOpenDescription(false);
   };
 
-  const [childCardData, setChildCardData] = useState({});
-
-  const [isChecked, setIsChecked] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [childCardData, setChildCardData] = useState({
+    id: "",
+    title: "",
+    description: "",
+    is_checked: "",
+    dashbord_c_id: "",
+    is_archive: "",
+  });
 
   useEffect(() => {
-    setIsChecked(childCardDetails?.is_checked);
-    setTitle(childCardDetails?.title);
-    setDescription(childCardDetails.description);
+    setChildCardData(childCardDetails);
   }, [childCardDetails]);
 
-  const handleComplete = async (e, id) => {
-    e.preventDefault();
-    console.log("==================", id, isChecked);
-    // const newStatus = !isChecked;
-    // setIsChecked(newStatus)
-  };
+  // const handleComplete = async (e, id) => {
+  //   e.preventDefault();
+  //   const newStatus = !childCardData?.is_checked;
+  //   let data = JSON.stringify({
+  //     id,
+  //     is_checked: newStatus,
+  //   });
+  //   let result = await apiHelper.postRequest("update-child-card-status", data);
+  //   if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
+  //     setChildCardData((prev) => ({
+  //       ...prev,
+  //       is_checked: newStatus,
+  //     }));
+  //     console.log("MESSAGE IF : ", result?.message);
+  //   } else {
+  //     console.log("MESSAGE ELSE : ", result?.message);
+  //   }
+  // };
 
   return (
     <Modal
@@ -56,18 +76,19 @@ export default function Description() {
             <div className="flex flex-row w-full gap-2 items-center justify-between">
               <input
                 type="checkbox"
-                // checked={childCardDetails?.is_checked}
-                checked={isChecked}
+                checked={!!childCardData?.is_checked}
                 className="w-5 h-4.5 mx-1 appearance-none border-2 border-gray-500 cursor-pointer rounded-full checked:block checked:bg-green-600 checked:border-green-600 bg-center bg-no-repeat focus:outline-none"
-                onChange={(e) => handleComplete(e, childCardDetails?.id)}
+                onChange={(e) => handleComplete(e, childCardData?.id)}
               />
               <textarea
-                value={title}
-                // value={childCardDetails?.title}
-                className="w-full h-10 px-2 py-1 text-xl font-semibold resize-none outline-none overflow-hidden rounded focus:border-2 focus:border-blue-600"
+                value={childCardData?.title}
+                className="w-full h-8 px-2 py-1 text-xl font-semibold resize-none outline-none overflow-hidden rounded focus:border-2 focus:border-blue-600"
                 onChange={(e) => {
-                  setTitle(e.target.value);
-                  e.target.style.height = "auto";
+                  setChildCardData((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }));
+                  e.target.style.height = "32";
                   e.target.style.height = e.target.scrollHeight + "px";
                 }}
               />
@@ -86,36 +107,43 @@ export default function Description() {
                 </button>
                 <div className="flex flex-col gap-4 w-full px-2">
                   <p className="text-base font-medium">Description</p>
-                  {/* <button className='bg-gray-200 rounded py-4 hover:bg-gray-300 cursor-pointer'>Add more detailed description</button> */}
-                  <textarea
-                    value={description}
-                    // value={childCardDetails?.description}
-                    className="w-full h-10 px-2 py-1 text-xl font-semibold resize-none outline-none overflow-hidden rounded focus:border-2 focus:border-blue-600"
+                  <button
+                    className="bg-gray-200 rounded py-4 hover:bg-gray-300 cursor-pointer"
+                    onClick={() => console.log("OPEN DESCRIPTION MODAL ===>>>")}
+                  >
+                    Add more detailed description
+                  </button>
+                  {/* <textarea
+                    value={childCardData?.description}
+                    className="w-full h-8 px-2 py-1 text-xl font-semibold resize-none outline-none overflow-hidden rounded focus:border-2 focus:border-blue-600"
                     onChange={(e) => {
-                      setDescription(e.target.value);
-                      e.target.style.height = "auto";
+                      setChildCardData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }));
+                      e.target.style.height = "32";
                       e.target.style.height = e.target.scrollHeight + "px";
                     }}
-                  />
+                  /> */}
                 </div>
               </div>
 
               {/* <div className='flex items-start gap-2 w-full'>
-                                <button className='p-1'>
-                                    <Menu size={20} />
-                                </button>
-                                <div className='flex flex-col gap-4 w-full px-2'>
-                                    <div className='flex justify-between items-center px-2'>
-                                        <p className='text-base font-medium'>Gant</p>
-                                        <button
-                                            className='bg-gray-200 text-sm rounded px-4 py-1 hover:bg-gray-300'
-                                        >
-                                            Hide
-                                        </button>
-                                    </div>
-                                    <div className='hidden bg-gray-200 rounded py-4 hover:bg-gray-300'>Add more detailed description</div>
-                                </div>
-                            </div> */}
+                  <button className='p-1'>
+                      <Menu size={20} />
+                  </button>
+                  <div className='flex flex-col gap-4 w-full px-2'>
+                      <div className='flex justify-between items-center px-2'>
+                          <p className='text-base font-medium'>Gant</p>
+                          <button
+                              className='bg-gray-200 text-sm rounded px-4 py-1 hover:bg-gray-300'
+                          >
+                              Hide
+                          </button>
+                      </div>
+                      <div className='hidden bg-gray-200 rounded py-4 hover:bg-gray-300'>Add more detailed description</div>
+                  </div>
+              </div> */}
 
               {/* TIMER  */}
               <div className="flex items-start gap-2 w-full">
