@@ -86,6 +86,7 @@ export default function TaskCard({ id, values }) {
   };
   // UPDATE LIST CARD
   const handleUpdateDashbordCard = async (e, id) => {
+    e.preventDefault()
     if (!handleValidation2()) {
       return;
     }

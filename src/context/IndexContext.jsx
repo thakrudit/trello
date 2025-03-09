@@ -75,6 +75,37 @@ export default function ContextProvider({ children }) {
     }
   };
 
+  const handleValidation = () => {
+    let isValid = true;
+    if (childCardDetails.title.trim() === "") {
+      isValid = false;
+    }
+    return isValid;
+  };
+  // UPDATE CHILD CARD TITLE
+  const handleUpdateChildCardTitle = async (e, id, title) => {
+    e.preventDefault();
+    if (!handleValidation()) {
+      return;
+    }
+    let data = JSON.stringify({
+      c_id: id,
+      title,
+    });
+    let result = await apiHelper.postRequest("update-child-card-title", data);
+    if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
+      setChildCardDetails((prev) => ({
+        ...prev,
+        title: title,
+      }));
+      console.log("MESSAGE IF : ", result.message);
+    } else {
+      console.log("MESSAGE ELSE : ", result.message);
+    }
+  };
+
+  // console.log("childCardDetails", childCardDetails )
+
   return (
     <IndexContext.Provider
       value={{
@@ -92,6 +123,7 @@ export default function ContextProvider({ children }) {
         // isCheckedD,
         // setIsCheckedD,
         handleComplete,
+        handleUpdateChildCardTitle,
       }}
     >
       {children}

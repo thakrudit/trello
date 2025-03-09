@@ -22,6 +22,7 @@ export default function Description() {
     setOpenDescription,
     childCardDetails,
     handleComplete,
+    handleUpdateChildCardTitle,
   } = useIndexContext();
   // console.log("childCardDetails =============", childCardDetails);
 
@@ -43,24 +44,43 @@ export default function Description() {
     setChildCardData(childCardDetails);
   }, [childCardDetails]);
 
-  // const handleComplete = async (e, id) => {
-  //   e.preventDefault();
-  //   const newStatus = !childCardData?.is_checked;
-  //   let data = JSON.stringify({
-  //     id,
-  //     is_checked: newStatus,
-  //   });
-  //   let result = await apiHelper.postRequest("update-child-card-status", data);
-  //   if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
-  //     setChildCardData((prev) => ({
-  //       ...prev,
-  //       is_checked: newStatus,
-  //     }));
-  //     console.log("MESSAGE IF : ", result?.message);
-  //   } else {
-  //     console.log("MESSAGE ELSE : ", result?.message);
-  //   }
-  // };
+  const [descriptionBoard, setDescriptionBoard] = useState(false);
+  const handleOpenDescriptionBoard = async () => {
+    setDescriptionBoard(true);
+  };
+  const handleCloseDescriptionBoard = async () => {
+    setDescriptionBoard(false);
+  };
+
+  const handleValidation = () => {
+    let isValid = true;
+    if (childCardData.description.trim() === "") {
+      isValid = false;
+    }
+    return isValid;
+  };
+  // HANDLE UPDATE DESCRIPTION
+  const handleUpdateDescription = async (e, id) => {
+    e.preventDefault();
+    if (!handleValidation()) {
+      handleCloseDescriptionBoard();
+      return;
+    }
+    let data = JSON.stringify({
+      c_id: id,
+      description: childCardData.description,
+    });
+    let result = await apiHelper.postRequest(
+      "update-child-card-description",
+      data
+    );
+    if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
+      handleCloseDescriptionBoard();
+      console.log("MESSAGE IF : ", result.message);
+    } else {
+      console.log("MESSAGE ELSE : ", result.message);
+    }
+  };
 
   return (
     <Modal
@@ -91,6 +111,16 @@ export default function Description() {
                   e.target.style.height = "32";
                   e.target.style.height = e.target.scrollHeight + "px";
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleUpdateChildCardTitle(
+                      e,
+                      childCardData.id,
+                      childCardData.title
+                    );
+                  }
+                }}
               />
             </div>
             <button className="p-1 cursor-pointer" onClick={handleClose}>
@@ -107,24 +137,46 @@ export default function Description() {
                 </button>
                 <div className="flex flex-col gap-4 w-full px-2">
                   <p className="text-base font-medium">Description</p>
-                  <button
-                    className="bg-gray-200 rounded py-4 hover:bg-gray-300 cursor-pointer"
-                    onClick={() => console.log("OPEN DESCRIPTION MODAL ===>>>")}
-                  >
-                    Add more detailed description
-                  </button>
-                  {/* <textarea
-                    value={childCardData?.description}
-                    className="w-full h-8 px-2 py-1 text-xl font-semibold resize-none outline-none overflow-hidden rounded focus:border-2 focus:border-blue-600"
-                    onChange={(e) => {
-                      setChildCardData((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }));
-                      e.target.style.height = "32";
-                      e.target.style.height = e.target.scrollHeight + "px";
-                    }}
-                  /> */}
+                  {!descriptionBoard ? (
+                    <button
+                      className="bg-gray-200 rounded py-4 hover:bg-gray-300 cursor-pointer"
+                      onClick={handleOpenDescriptionBoard}
+                    >
+                      Add more detailed description
+                    </button>
+                  ) : (
+                    <div>
+                      <textarea
+                        value={childCardData?.description}
+                        placeholder="Enter some text here"
+                        className="w-full px-2 py-1 text-base font-medium resize-none outline-none overflow-hidden rounded border border-gray-500 focus:border-2 focus:border-blue-600"
+                        onChange={(e) => {
+                          setChildCardData((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }));
+                          e.target.style.height = "auto";
+                          e.target.style.height = e.target.scrollHeight + "px";
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          className="border border-blue-700 text-white px-3 rounded bg-blue-600"
+                          onClick={(e) => {
+                            handleUpdateDescription(e, childCardData.id);
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="border px-2 rounded"
+                          onClick={handleCloseDescriptionBoard}
+                        >
+                          Cancle
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

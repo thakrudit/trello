@@ -1,5 +1,5 @@
 import { Archive, FilePenLine, Menu } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import apiHelper from "../helpers/api-helper";
 import DEVELOPMENT_CONFIG from "../helpers/config";
 import { useDraggable } from "@dnd-kit/core";
@@ -64,13 +64,52 @@ export default function ChildCard({ id, cardValues, displayDashbordCard }) {
     }
   };
 
+  const textareaRef = useRef(null);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleButtonClick = (e) => {
+    e.stopPropagation();
+    textareaRef.current?.focus();
+  };
+
+  const handleValidation = () => {
+    let isValid = true;
+    if (childCard.title.trim() === "") {
+      isValid = false;
+    }
+    return isValid;
+  };
+  // UPDATE CHILD CARD TITLE
+  const handleUpdateChildCardTitle = async (e, id, title) => {
+    e.preventDefault();
+    if (!handleValidation()) {
+      return;
+    }
+    let data = JSON.stringify({
+      c_id: id,
+      title,
+    });
+    let result = await apiHelper.postRequest("update-child-card-title", data);
+    if (result?.code === DEVELOPMENT_CONFIG.statusCode) {
+      setChildCard((prev) => ({
+        ...prev,
+        title: title,
+      }));
+      console.log("MESSAGE IF : ", result.message);
+    } else {
+      console.log("MESSAGE ELSE : ", result.message);
+    }
+  };
+
   return (
     <div
       key={id}
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className="flex flex-col items-start py-2 gap-2 border border-gray-300 rounded hover:ring-1 hover:ring-blue-500 group"
+      className={`flex flex-col items-start py-2 gap-2 border border-gray-300 rounded hover:ring-1 hover:ring-blue-500 group transition-colors duration-300 ${
+        isFocused ? "bg-gray-300" : ""
+      }`}
       style={style}
     >
       <div className="flex w-full items-start justify-between p-2 ">
@@ -83,9 +122,12 @@ export default function ChildCard({ id, cardValues, displayDashbordCard }) {
             onChange={(e) => handleComplete(e, id)}
           />
           <textarea
+            ref={textareaRef}
             value={childCard?.title}
             className="w-full h-8 px-2 py-2 text-sm border-none resize-none outline-none overflow-hidden"
             onPointerDown={(e) => e.stopPropagation()}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             onChange={(e) => {
               setChildCard((prev) => ({
                 ...prev,
@@ -93,6 +135,12 @@ export default function ChildCard({ id, cardValues, displayDashbordCard }) {
               }));
               e.target.style.height = "32";
               e.target.style.height = e.target.scrollHeight + "px";
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleUpdateChildCardTitle(e, childCard.id, childCard.title);
+              }
             }}
           />
         </div>
@@ -109,7 +157,7 @@ export default function ChildCard({ id, cardValues, displayDashbordCard }) {
           <button
             className="cursor-pointer"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => console.log("Detail", id)}
+            onClick={handleButtonClick}
           >
             <FilePenLine size={15} />
           </button>
