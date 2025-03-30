@@ -14,7 +14,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     allowedHosts: [
-      'trello-test-t.netlify.app/'
+      'https://trello-test-t.netlify.app'
     ],
     cors: true,
   }
